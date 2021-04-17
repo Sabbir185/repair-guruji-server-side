@@ -55,6 +55,16 @@ client.connect(err => {
           })
       })
   })
+
+  // get all services
+  app.get('/getServices', (req, res) => {
+    serviceCollection.find({})
+    .toArray((err, doc) => {
+        res.send(doc);
+    })
+  })
+
+
  //  client.close();
 });
 
