@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 const MongoClient = require('mongodb').MongoClient;
 const cors = require('cors');
+const bodyParser = require('body-parser')
+const ObjectId = require('mongodb').ObjectId;
 const fs = require('fs-extra');
 const fileUpload = require('express-fileupload');
 const port = 5055;
@@ -21,6 +23,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 client.connect(err => {
   const serviceCollection = client.db(`${process.env.DB_DATABASE}`).collection(`${process.env.DB_SERVICES}`);
+  const reviewCollection = client.db(`${process.env.DB_DATABASE}`).collection(`${process.env.DB_REVIEWS}`);
   // perform actions on the collection object
   // add service items
   app.post('/addService', (req, res) => {
@@ -61,6 +64,18 @@ client.connect(err => {
     serviceCollection.find({})
     .toArray((err, doc) => {
         res.send(doc);
+    })
+  })
+
+  // add review to database
+  app.post('/addReview',(req, res)=>{
+    const email = req.body.email;
+    const description = req.body.description;
+    const occupation = req.body.occupation;
+    const rating = req.body.rating;
+    reviewCollection.insertOne({email, description, occupation, rating})
+    .then(result => {
+      res.send(result.insertedCount > 0)
     })
   })
 
