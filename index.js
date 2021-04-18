@@ -24,6 +24,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 client.connect(err => {
   const serviceCollection = client.db(`${process.env.DB_DATABASE}`).collection(`${process.env.DB_SERVICES}`);
   const reviewCollection = client.db(`${process.env.DB_DATABASE}`).collection(`${process.env.DB_REVIEWS}`);
+  const bookingCollection = client.db(`${process.env.DB_DATABASE}`).collection(`${process.env.DB_BOOK}`);
   // perform actions on the collection object
   // add service items
   app.post('/addService', (req, res) => {
@@ -85,6 +86,18 @@ client.connect(err => {
     reviewCollection.find({})
     .toArray((err, doc)=>{
       res.send(doc);
+    })
+  })
+
+  // store booking 
+  app.post("/addBook",(req, res) => {
+    const email = req.body.email;
+    const title = req.body.title;
+    const price = req.body.price;
+    const paymentId = req.body.id;
+    bookingCollection.insertOne({email, title, price, paymentId})
+    .then(result=>{
+      res.send(result.insertedCount>0)
     })
   })
 
