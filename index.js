@@ -142,6 +142,15 @@ client.connect(err => {
     })
   })
 
+  // service delete
+  app.get('/serviceDelete',(req, res)=>{
+    const id = req.query.id;
+    serviceCollection.deleteOne({_id: ObjectId(id)})
+    .then(result=>{
+      res.send(result.deletedCount > 0);
+    })
+  })
+
   //  client.close();
 });
 
