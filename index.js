@@ -101,11 +101,19 @@ client.connect(err => {
     })
   })
 
-  // fetching booking
+  // fetching booking by filtering email
   app.get('/getBooking',(req,res)=>{
     const email = req.query.email
-    console.log(email)
     bookingCollection.find({email: `${email}`})
+    .toArray((err,doc)=>{
+      res.send(doc)
+    })
+  })
+
+  // fetching booking
+  app.get('/getAllBookingList',(req,res)=>{
+    const email = req.query.email
+    bookingCollection.find({})
     .toArray((err,doc)=>{
       res.send(doc)
     })
