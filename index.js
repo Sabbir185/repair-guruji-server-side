@@ -80,7 +80,9 @@ client.connect(err => {
     const occupation = req.body.occupation;
     const rating = req.body.rating;
     const image = req.body.image;
-    reviewCollection.insertOne({ email, description, occupation, rating, image })
+    const name = req.body.name;
+    console.log(name);
+    reviewCollection.insertOne({ email, description, occupation, rating, image, name })
       .then(result => {
         res.send(result.insertedCount > 0)
       })
