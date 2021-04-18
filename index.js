@@ -101,6 +101,16 @@ client.connect(err => {
     })
   })
 
+  // fetching booking
+  app.get('/getBooking',(req,res)=>{
+    const email = req.query.email
+    console.log(email)
+    bookingCollection.find({email: `${email}`})
+    .toArray((err,doc)=>{
+      res.send(doc)
+    })
+  })
+
 
  //  client.close();
 });
