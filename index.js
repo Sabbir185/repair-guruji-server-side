@@ -73,9 +73,18 @@ client.connect(err => {
     const description = req.body.description;
     const occupation = req.body.occupation;
     const rating = req.body.rating;
-    reviewCollection.insertOne({email, description, occupation, rating})
+    const image = req.body.image;
+    reviewCollection.insertOne({email, description, occupation, rating, image})
     .then(result => {
       res.send(result.insertedCount > 0)
+    })
+  })
+
+  // get all reviews
+  app.get('/getReview',(req, res)=>{
+    reviewCollection.find({})
+    .toArray((err, doc)=>{
+      res.send(doc);
     })
   })
 
