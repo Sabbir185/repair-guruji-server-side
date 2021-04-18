@@ -21,106 +21,128 @@ app.get('/', (req, res) => {
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wgngx.mongodb.net/${process.env.DB_DATABASE}?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
+
 client.connect(err => {
   const serviceCollection = client.db(`${process.env.DB_DATABASE}`).collection(`${process.env.DB_SERVICES}`);
+
   const reviewCollection = client.db(`${process.env.DB_DATABASE}`).collection(`${process.env.DB_REVIEWS}`);
+
   const bookingCollection = client.db(`${process.env.DB_DATABASE}`).collection(`${process.env.DB_BOOK}`);
+
+  const adminCollection = client.db(`${process.env.DB_DATABASE}`).collection(`${process.env.DB_ADMIN}`);
   // perform actions on the collection object
   // add service items
   app.post('/addService', (req, res) => {
-      const file = req.files.file;
-      const title = req.body.title;
-      const price = req.body.price;
-      const description = req.body.description;
-      const filePath = `${__dirname}/services/${file.name}`;
-      file.mv(filePath, err => {
-          if(err){
+    const file = req.files.file;
+    const title = req.body.title;
+    const price = req.body.price;
+    const description = req.body.description;
+    const filePath = `${__dirname}/services/${file.name}`;
+    file.mv(filePath, err => {
+      if (err) {
+        console.log(err);
+        res.status(500).send({ msg: 'Failed to upload' });
+      }
+      const newImg = fs.readFileSync(filePath);
+      const encImg = newImg.toString('base64');
+
+      var image = {
+        contentType: req.files.file.mimetype,
+        size: req.files.file.size,
+        img: Buffer(encImg, 'base64')
+      }
+
+      serviceCollection.insertOne({ title, price, description, image })
+        .then(result => {
+          fs.remove(filePath, error => {
+            if (error) {
               console.log(err);
-              res.status(500).send({msg: 'Failed to upload'});
-          }
-          const newImg = fs.readFileSync(filePath);
-          const encImg = newImg.toString('base64');
-
-          var image = {
-              contentType: req.files.file.mimetype,
-              size: req.files.file.size,
-              img: Buffer(encImg, 'base64')
-          }
-
-          serviceCollection.insertOne({title, price, description, image})
-          .then(result => {
-              fs.remove(filePath, error => {
-                  if(error){
-                    console.log(err);
-                    res.status(500).send({msg: 'Failed to upload'});
-                  }
-                  res.send(result.insertedCount > 0);
-              })
+              res.status(500).send({ msg: 'Failed to upload' });
+            }
+            res.send(result.insertedCount > 0);
           })
-      })
+        })
+    })
   })
 
   // get all services
   app.get('/getServices', (req, res) => {
     serviceCollection.find({})
-    .toArray((err, doc) => {
+      .toArray((err, doc) => {
         res.send(doc);
-    })
+      })
   })
 
   // add review to database
-  app.post('/addReview',(req, res)=>{
+  app.post('/addReview', (req, res) => {
     const email = req.body.email;
     const description = req.body.description;
     const occupation = req.body.occupation;
     const rating = req.body.rating;
     const image = req.body.image;
-    reviewCollection.insertOne({email, description, occupation, rating, image})
-    .then(result => {
-      res.send(result.insertedCount > 0)
-    })
+    reviewCollection.insertOne({ email, description, occupation, rating, image })
+      .then(result => {
+        res.send(result.insertedCount > 0)
+      })
   })
 
   // get all reviews
-  app.get('/getReview',(req, res)=>{
+  app.get('/getReview', (req, res) => {
     reviewCollection.find({})
-    .toArray((err, doc)=>{
-      res.send(doc);
-    })
+      .toArray((err, doc) => {
+        res.send(doc);
+      })
   })
 
   // store booking 
-  app.post("/addBook",(req, res) => {
+  app.post("/addBook", (req, res) => {
     const email = req.body.email;
     const title = req.body.title;
     const price = req.body.price;
     const paymentId = req.body.id;
-    bookingCollection.insertOne({email, title, price, paymentId})
-    .then(result=>{
-      res.send(result.insertedCount>0)
-    })
+    bookingCollection.insertOne({ email, title, price, paymentId })
+      .then(result => {
+        res.send(result.insertedCount > 0)
+      })
   })
 
   // fetching booking by filtering email
-  app.get('/getBooking',(req,res)=>{
+  app.get('/getBooking', (req, res) => {
     const email = req.query.email
-    bookingCollection.find({email: `${email}`})
-    .toArray((err,doc)=>{
-      res.send(doc)
-    })
+    bookingCollection.find({ email: `${email}` })
+      .toArray((err, doc) => {
+        res.send(doc)
+      })
   })
 
   // fetching booking
-  app.get('/getAllBookingList',(req,res)=>{
+  app.get('/getAllBookingList', (req, res) => {
     const email = req.query.email
     bookingCollection.find({})
-    .toArray((err,doc)=>{
-      res.send(doc)
+      .toArray((err, doc) => {
+        res.send(doc)
+      })
+  })
+
+  // create admin
+  app.post('/addAdmin', (req, res) => {
+    const email = req.body.email;
+    adminCollection.insertOne({email})
+    .then(result => {
+      res.send(result.insertedCount > 0);
     })
   })
 
+  // admin fetching
+  app.get('/getAdmin',(req,res)=>{
+    const email = req.query;
+    adminCollection.find(email)
+    .toArray((err,doc)=>{
+      res.send(doc.length>0);
+    })
+  })
 
- //  client.close();
+  //  client.close();
 });
 
 
